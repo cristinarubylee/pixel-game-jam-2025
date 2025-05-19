@@ -1,13 +1,17 @@
 import { Scene } from 'phaser';
+import Player from '../models/Player';
+import Zombie from '../models/Zombie';
 
 export class Game extends Scene {
-    camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
+    camera!: Phaser.Cameras.Scene2D.Camera;
+    background!: Phaser.GameObjects.TileSprite;
     msg_text: Phaser.GameObjects.Text;
+    player!: Player;
+    zombies!: Array<Zombie>;
 
-    player!: Phaser.Physics.Arcade.Sprite;
-    cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    keys!: { W: Phaser.Input.Keyboard.Key, A: Phaser.Input.Keyboard.Key, D: Phaser.Input.Keyboard.Key };
+    world_width = 2000;
+    world_height = 768;
+    camera_pad = 100;
 
     constructor() {
         super('Game');
@@ -19,12 +23,16 @@ export class Game extends Scene {
 
     create() {
         this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0x00ff00);
         this.camera.roundPixels = true;
         this.camera.setZoom(2);
+        this.camera.setBounds(
+            -this.camera_pad,
+            this.camera_pad,
+            this.world_width + this.camera_pad * 2,
+            this.world_height + this.camera_pad * 2
+        )
 
-        this.background = this.add.image(512, 384, 'background');
-        this.background.setAlpha(0.5);
+        this.background = this.add.tileSprite(512, 525, 1024, 768, 'background');
 
         this.msg_text = this.add.text(512, 100, 'Use W A D to move\nMake something fun!', {
             fontFamily: 'Arial Black', fontSize: 28, color: '#ffffff',
@@ -32,66 +40,26 @@ export class Game extends Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        // Add physics
-        this.physics.world.setBounds(0, 0, 1024, 768);
+        this.physics.world.setBounds(0, 0, this.world_width, this.world_height);
 
         // Create player
-        this.player = this.physics.add.sprite(512, 100, 'idle', 0).setScale(1);
-        this.player.setCollideWorldBounds(true);
-
+        this.player = new Player(this, 512, 600);
         this.camera.startFollow(this.player);
 
-        // Add keyboard input
-        this.keys = this.input.keyboard!.addKeys({
-            W: 'W',
-            A: 'A',
-            D: 'D'
-        }) as any;
+        // Create zombies 
+        this.zombies = [];
 
-        // Add animations
-        this.anims.create({
-            key: 'idle',
-            frames: this.anims.generateFrameNumbers('idle', { start: 0, end: 5 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'walk',
-            frames: this.anims.generateFrameNumbers('walk', { start: 0, end: 7 }),
-            frameRate: 12,
-            repeat: -1
-        });
- 
-        this.player.play('idle');
-
-        const ground = this.add.rectangle(512, 400, 1024, 50, 0x654321);
-        this.physics.add.existing(ground, true); // Static body
-
-        this.physics.add.collider(this.player, ground);
+        const zombie1 = new Zombie(this, 600, 768, this.player);
+        this.zombies.push(zombie1);
     }
 
-    update() {
-        const speed = 350;
-        const jumpSpeed = -500;
-        const isOnGround = this.player.body!.blocked.down;
+    update(time: any) {
+        this.player.update();
+        this.zombies.forEach(zombie => {
+            zombie.update(time);
+        })
 
-        if (this.keys.A.isDown) {
-            this.player.setVelocityX(-speed);
-            this.player.setFlipX(true);
-            if (isOnGround) this.player.play('walk', true);
-        } else if (this.keys.D.isDown) {
-            this.player.setVelocityX(speed);
-            this.player.setFlipX(false);
-            if (isOnGround) this.player.play('walk', true);
-        } else {
-            this.player.setVelocityX(0);
-            if (isOnGround) this.player.play('idle', true);
-        }
-
-        if (this.keys.W.isDown && isOnGround) {
-            this.player.setVelocityY(jumpSpeed);
-        }
-
+        this.background.tilePositionX = this.player.x;
+        this.background.setX(this.player.x);
     }
 }

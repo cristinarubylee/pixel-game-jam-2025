@@ -33,18 +33,67 @@ export class Preloader extends Scene
         this.load.setPath('assets');
 
         this.load.image('logo', 'logo.png');
+
         this.load.spritesheet('idle', 'rabbeat_idle.png', { frameWidth: 90, frameHeight: 90 });
-        //  this.load.spritesheet('idle', 'rabbeat_idle_scaled_2x_pngcrushed.png', { frameWidth: 256, frameHeight: 256 });
         this.load.spritesheet('walk', 'rabbeat_walk.png', { frameWidth: 90, frameHeight: 90 });
+        this.load.spritesheet('jump', 'rabbeat_jump.png', { frameWidth: 90, frameHeight: 100 });
+        this.load.spritesheet('punch', 'rabbeat_punch.png', { frameWidth: 90, frameHeight: 90 });
+
+        this.load.spritesheet('zombie_walk', 'zombie_walk.png', { frameWidth: 90, frameHeight: 80});
+
+
     }
 
     create ()
     {
-        //  When all the assets have loaded, it's often worth creating global objects here that the rest of the game can use.
-        //  For example, you can define global animations here, so we can use them in other scenes.
+        //  Player Spritesheets
         this.textures.get('idle').setFilter(Phaser.Textures.FilterMode.NEAREST);
         this.textures.get('walk').setFilter(Phaser.Textures.FilterMode.NEAREST);
+        this.textures.get('jump').setFilter(Phaser.Textures.FilterMode.NEAREST);
+        this.textures.get('punch').setFilter(Phaser.Textures.FilterMode.NEAREST);
 
+        // Player Animations
+        this.anims.create({
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers('idle', { start: 0, end: 5 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'walk',
+            frames: this.anims.generateFrameNumbers('walk', { start: 0, end: 7 }),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'jump_start',
+            frames: this.anims.generateFrameNumbers('jump', { start: 0, end: 2 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'jump_end',
+            frames: this.anims.generateFrameNumbers('jump', { start: 2, end: 3 }),
+            frameRate: 12,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'punch',
+            frames: this.anims.generateFrameNumbers('punch', { start: 0, end: 3 }),
+            frameRate: 6,
+            repeat: 0
+        });
+
+        // Zombie Spritesheets
+        this.textures.get('zombie_walk').setFilter(Phaser.Textures.FilterMode.NEAREST);
+
+        // Zombie Animations
+        this.anims.create({
+            key: 'zombie_walk',
+            frames: this.anims.generateFrameNumbers('zombie_walk', { start: 0, end: 1 }),
+            frameRate: 1,
+            repeat: -1
+        });
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
         this.scene.start('MainMenu');

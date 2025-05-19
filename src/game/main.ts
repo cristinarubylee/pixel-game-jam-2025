@@ -5,7 +5,7 @@ import { MainMenu } from './scenes/MainMenu';
 import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
-const baseWidth = 1025;
+const baseWidth = 1024;
 const baseHeight = 768;
 
 const scaleX = Math.floor(window.innerWidth / baseWidth);
@@ -36,7 +36,7 @@ const config: Phaser.Types.Core.GameConfig = {
         default: 'arcade',
         arcade: {
             gravity: { x: 0, y: 1000 },
-            debug: false
+            debug: true
         }
     }
 };
