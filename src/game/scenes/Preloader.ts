@@ -73,14 +73,14 @@ export class Preloader extends Scene
         });
         this.anims.create({
             key: 'jump_end',
-            frames: this.anims.generateFrameNumbers('jump', { start: 2, end: 3 }),
+            frames: this.anims.generateFrameNumbers('jump', { start: 2, end: 4 }),
             frameRate: 12,
             repeat: 0
         });
         this.anims.create({
             key: 'punch',
-            frames: this.anims.generateFrameNumbers('punch', { start: 0, end: 3 }),
-            frameRate: 6,
+            frames: this.anims.generateFrameNumbers('punch', { start: 1, end: 3 }),
+            frameRate: 12,
             repeat: 0
         });
 

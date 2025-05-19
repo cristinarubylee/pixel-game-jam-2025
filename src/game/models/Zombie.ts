@@ -1,8 +1,9 @@
 import Player from "./Player"
 export default class Zombie extends Phaser.Physics.Arcade.Sprite {
+    private health = 100;
     private player : Player;
     private speed = 30;
-    private attackRange = 30;
+    private attackRange = 60;
     private attackCooldown = 1000;
     private lastAttackTime = 0;
 
@@ -15,6 +16,7 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
         scene.physics.world.enable(this);
         scene.add.existing(this);
         this.setCollideWorldBounds(true);
+        this.setSize(70, 90);
     }
 
     update(time: number) {
@@ -42,10 +44,32 @@ export default class Zombie extends Phaser.Physics.Arcade.Sprite {
 
     attack(currentTime: number) {
         if (currentTime - this.lastAttackTime >= this.attackCooldown) {
+            this.lastAttackTime = currentTime;
             this.setTint(0x0000ff);
+            const dir = this.flipX ? 1 : -1;
+            this.player.takeDamage(10, dir);
             this.scene.time.delayedCall(200, () => {
                 this.clearTint();
             })
         }
     }
+
+    takeDamage(damage: number, knockbackDir: number) {
+        const knockbackForce = 500;
+        this.setVelocityX(knockbackForce * knockbackDir);
+        this.scene.cameras.main.shake(100, 0.01);
+
+        if (this.health - damage <= 0) {
+            // Play death animation
+            this.destroy(true);
+        } else {
+            this.health -= damage;
+            this.setTint(0xd0312d);
+            this.scene.time.delayedCall(200, () => {
+                this.clearTint();
+            })
+        }
+    }
+
+
 }

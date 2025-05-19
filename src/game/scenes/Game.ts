@@ -6,6 +6,9 @@ export class Game extends Scene {
     camera!: Phaser.Cameras.Scene2D.Camera;
     background!: Phaser.GameObjects.TileSprite;
     msg_text: Phaser.GameObjects.Text;
+
+    player_health_bar: Phaser.GameObjects.Rectangle;
+
     player!: Player;
     zombies!: Array<Zombie>;
 
@@ -22,6 +25,7 @@ export class Game extends Scene {
     }
 
     create() {
+        // Camera settings
         this.camera = this.cameras.main;
         this.camera.roundPixels = true;
         this.camera.setZoom(2);
@@ -33,6 +37,7 @@ export class Game extends Scene {
         )
 
         this.background = this.add.tileSprite(512, 525, 1024, 768, 'background');
+        this.physics.world.setBounds(0, 0, this.world_width, this.world_height);
 
         this.msg_text = this.add.text(512, 100, 'Use W A D to move\nMake something fun!', {
             fontFamily: 'Arial Black', fontSize: 28, color: '#ffffff',
@@ -40,7 +45,9 @@ export class Game extends Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        this.physics.world.setBounds(0, 0, this.world_width, this.world_height);
+        // HUD
+        this.add.rectangle(512, 200, 468, 32).setStrokeStyle(1, 0xffffff).setScrollFactor(0);
+        this.player_health_bar = this.add.rectangle(512-230, 200, 0, 28, 0xffffff).setScrollFactor(0);
 
         // Create player
         this.player = new Player(this, 512, 600);
@@ -48,9 +55,9 @@ export class Game extends Scene {
 
         // Create zombies 
         this.zombies = [];
-
-        const zombie1 = new Zombie(this, 600, 768, this.player);
-        this.zombies.push(zombie1);
+        this.createZombie(600, 768);
+        this.createZombie(100, 768);
+        this.createZombie(200, 768);
     }
 
     update(time: any) {
@@ -61,5 +68,23 @@ export class Game extends Scene {
 
         this.background.tilePositionX = this.player.x;
         this.background.setX(this.player.x);
+
+        // Update HUD
+        this.player_health_bar.width = (460 * this.player.health/100);
+        
+    }
+
+    private createZombie(x: number, y: number){
+        const zombie = new Zombie(this, x, y, this.player);
+        this.zombies.push(zombie);
+        this.physics.add.overlap(
+            this.player.punchHitBox, zombie, () => {
+                if (!this.player.hitEnemies.has(zombie)) {
+                    const dir = this.player.flipX ? -1 : 1;
+                    this.player.hitEnemies.add(zombie);
+                    zombie.takeDamage(10, dir);
+                }
+            }
+        )
     }
 }
