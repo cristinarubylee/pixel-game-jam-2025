@@ -1,4 +1,5 @@
 import Zombie from "./Zombie";
+import { Scene } from "phaser";
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
     keys: {
@@ -12,6 +13,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     private speed = 350;
     private jumpSpeed = -500;
     private isPunching = false;
+    private wasInAir = false;
+
+    private jumpStartEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+    private landingEmitter: Phaser.GameObjects.Particles.ParticleEmitter;
+
 
     punchHitBox : any;
     hitEnemies = new Set<Zombie>();
@@ -26,12 +32,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     constructor(scene: Phaser.Scene, x: number, y: number) {
         super(scene, x, y, 'idle', 0)
         this.scene = scene;
+        this.setDepth(100);
 
         scene.add.existing(this);
         scene.physics.add.existing(this);
         this.setCollideWorldBounds(true);
         // this.setScale(2);
-        this.setSize(60, 90);
+        this.setSize(50, 90);
 
         this.punchHitBox = scene.add.rectangle(this.x, this.y, 40, 25, 0xffffff, 0) as Phaser.GameObjects.Rectangle & { body: Phaser.Physics.Arcade.Body };
         scene.add.existing(this.punchHitBox);
@@ -40,6 +47,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         this.punchHitBox.body.setImmovable(true);
         this.punchHitBox.body.enable = false;
         this.punchHitBox.body.debugShowBody = false;
+
+
+        this.landingEmitter = scene.add.particles(this.x, this.y, 'dust', {
+            angle: { min: 250, max: 290 }, 
+            speed: { min: 60, max: 120 },
+            scale: { start: 0.6, end: 0 },
+            alpha: { start: 0.5, end: 0 },
+            lifespan: 500,
+            quantity: 10,
+            emitting: false
+        });
+
+        this.jumpStartEmitter = scene.add.particles(this.x, this.y, 'dust', {
+            angle: { min: 260, max: 280 },
+            speed: { min: 80, max: 150 },
+            gravityY: 300,
+            scale: { start: 0.7, end: 0 },
+            alpha: { start: 0.6, end: 0 },
+            lifespan: 400,
+            quantity: 12,
+            emitting: false
+        });
 
         this.keys = scene.input.keyboard!.addKeys({
             up: 'W',
@@ -104,8 +133,13 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
             if (isOnGround) this.play('idle', true);
         }
 
+        // Effects
+        this.jumpStartEmitter.setPosition(this.x, this.y + this.height / 2);
+        this.landingEmitter.setPosition(this.x, this.y + this.height / 2);
+
         // Jumping
         if (this.keys.up.isDown && isOnGround) {
+            this.jumpStartEmitter.emitParticle();
             this.play('jump_start', true);
             this.setVelocityY(this.jumpSpeed);
         }
@@ -114,6 +148,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         if (!isOnGround && this.body!.velocity.y > 0 && this.anims.currentAnim?.key !== 'jump_end') {
             this.play('jump_end', true);
         }
+
+        // Landing
+        if (isOnGround && this.wasInAir){
+            console.log("landed!");
+            this.landingEmitter.emitParticle();
+        }
+
+        this.wasInAir = !isOnGround;
     }
 
     takeDamage(damage: number, knockbackDir: number) {
@@ -124,8 +166,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.health - damage <= 0) {
             // Play death animation
             this.health = 0;
-            this.setVisible(false);
-            this.setActive(false);
         } else {
             this.health -= damage;
             this.setTint(0xd0312d);

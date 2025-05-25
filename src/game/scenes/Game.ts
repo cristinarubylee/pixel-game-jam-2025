@@ -46,8 +46,8 @@ export class Game extends Scene {
         }).setOrigin(0.5);
 
         // HUD
-        this.add.rectangle(512, 200, 468, 32).setStrokeStyle(1, 0xffffff).setScrollFactor(0);
-        this.player_health_bar = this.add.rectangle(512-230, 200, 0, 28, 0xffffff).setScrollFactor(0);
+        this.add.rectangle(350, 220, 104, 22).setStrokeStyle(1, 0xffffff).setScrollFactor(0);
+        this.player_health_bar = this.add.rectangle(350-50, 220, 0, 16, 0xffffff).setScrollFactor(0);
 
         // Create player
         this.player = new Player(this, 512, 600);
@@ -55,9 +55,10 @@ export class Game extends Scene {
 
         // Create zombies 
         this.zombies = [];
-        this.createZombie(600, 768);
-        this.createZombie(100, 768);
-        this.createZombie(200, 768);
+        this.input.keyboard?.on('keydown-SPACE', () => {
+            const spawnX = Phaser.Math.Between(this.player.x - 100, this.player.x + 100);
+            this.createZombie(spawnX, this.world_height);
+        });
     }
 
     update(time: any) {
@@ -70,7 +71,7 @@ export class Game extends Scene {
         this.background.setX(this.player.x);
 
         // Update HUD
-        this.player_health_bar.width = (460 * this.player.health/100);
+        this.player_health_bar.width = (100 * this.player.health/100);
         
     }
 
@@ -79,10 +80,23 @@ export class Game extends Scene {
         this.zombies.push(zombie);
         this.physics.add.overlap(
             this.player.punchHitBox, zombie, () => {
+                if (this.player.hitEnemies.size > 0) return;
                 if (!this.player.hitEnemies.has(zombie)) {
                     const dir = this.player.flipX ? -1 : 1;
                     this.player.hitEnemies.add(zombie);
                     zombie.takeDamage(10, dir);
+                }
+            }
+        )
+        this.physics.add.overlap(
+            zombie.punchHitBox, this.player, () => {
+                if (!zombie.isTouchingPlayer) {
+                    const dir = zombie.flipX ? -1 : 1;
+                    zombie.isTouchingPlayer = true;
+                    this.player.takeDamage(10, dir);
+                    if (this.player.health == 0){
+                        this.scene.start('GameOver');
+                    }
                 }
             }
         )

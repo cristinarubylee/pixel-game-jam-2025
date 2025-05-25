@@ -40,6 +40,9 @@ export class Preloader extends Scene
         this.load.spritesheet('punch', 'rabbeat_punch.png', { frameWidth: 90, frameHeight: 90 });
 
         this.load.spritesheet('zombie_walk', 'zombie_walk.png', { frameWidth: 90, frameHeight: 80});
+        this.load.spritesheet('zombie_attack', 'zombie_attack.png', { frameWidth: 90, frameHeight: 80});
+
+        this.load.image('dust', 'dust.png');
 
 
     }
@@ -51,6 +54,7 @@ export class Preloader extends Scene
         this.textures.get('walk').setFilter(Phaser.Textures.FilterMode.NEAREST);
         this.textures.get('jump').setFilter(Phaser.Textures.FilterMode.NEAREST);
         this.textures.get('punch').setFilter(Phaser.Textures.FilterMode.NEAREST);
+        this.textures.get('dust').setFilter(Phaser.Textures.FilterMode.NEAREST);
 
         // Player Animations
         this.anims.create({
@@ -86,13 +90,20 @@ export class Preloader extends Scene
 
         // Zombie Spritesheets
         this.textures.get('zombie_walk').setFilter(Phaser.Textures.FilterMode.NEAREST);
+        this.textures.get('zombie_attack').setFilter(Phaser.Textures.FilterMode.NEAREST);
 
         // Zombie Animations
         this.anims.create({
             key: 'zombie_walk',
-            frames: this.anims.generateFrameNumbers('zombie_walk', { start: 0, end: 1 }),
-            frameRate: 1,
+            frames: this.anims.generateFrameNumbers('zombie_walk', { start: 0, end: 8 }),
+            frameRate: 10,
             repeat: -1
+        });
+        this.anims.create({
+            key: 'zombie_attack',
+            frames: this.anims.generateFrameNumbers('zombie_attack', { start: 0, end: 4 }),
+            frameRate: 10,
+            repeat: 0
         });
 
         //  Move to the MainMenu. You could also swap this for a Scene Transition, such as a camera fade.
